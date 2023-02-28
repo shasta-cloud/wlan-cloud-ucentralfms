@@ -110,6 +110,42 @@ namespace OpenWifi {
         return true;
     }
 
+/******************************************************************************
+ * Function Name : CreateDeviceForShasta
+ *
+ * Input         : NA
+ *
+ *Output         : return of static DB entries are successful or failure
+ *
+ *Description    : Adding a new device type to the FMS database. This is read
+ *                 by provui, gwui and lsui for displaying the device type in
+ *                 drop down.
+ *****************************************************************************/
+    bool ManifestCreator::CreateDeviceForShasta() {
+
+        FMSObjects::Firmware    F;
+        F.id = "asdff51d-e334-4247-a82a-c205aab4asdf";
+        F.id_flag = true;
+        F.release = "SONiC-OS-4.1.0_daily_230122_1930_508-Campus";
+        F.size = 1212960750;
+        F.created = Utils::Now();
+        F.imageDate = 1674415850;
+        F.image = "sonic-broadcom-campus-10_02.pkg";
+        F.uri = "https://accesspoint-firmware.s3.ap-south-1.amazonaws.com/edgecore_as4630-54pe/sonic-broadcom-campus-10_02.pkg";
+        F.revision = "x86_64-accton_as4630_54pe-r0";
+        F.deviceType = "edgecore_as4630-54pe";
+        F.downloadCount = 0;
+        F.latest = "t";
+        if(StorageService()->FirmwaresDB().AddFirmware(F)) {
+            poco_information(Logger(),fmt::format("Adding firmware '{}', size={}",F.release, F.size));
+            return true;
+        } else {
+            poco_information(Logger(),fmt::format("Failed to add firmware '{}', size={}",F.release, F.size));
+            return false;
+        }
+        return true;
+    }
+
     int ManifestCreator::Start() {
         Running_ = true;
         S3BucketName_ = MicroServiceConfigGetString("s3.bucketname","");
@@ -128,6 +164,7 @@ namespace OpenWifi {
             AwsConfig_.region = S3Region_;
         AwsCreds_.SetAWSAccessKeyId(S3Key_);
         AwsCreds_.SetAWSSecretKey(S3Secret_);
+        CreateDeviceForShasta();
 
         ManifestCreatorCallBack_ = std::make_unique<Poco::TimerCallback<ManifestCreator>>(*this, &ManifestCreator::onTimer);
         Timer_.setStartInterval(1 * 60 * 1000);  // first run in 1 minutes
