@@ -131,7 +131,7 @@ namespace OpenWifi {
         F.created = Utils::Now();
         F.imageDate = 1674415850;
         F.image = "sonic-broadcom-campus-10_02.pkg";
-        F.uri = "https://accesspoint-firmware.s3.ap-south-1.amazonaws.com/edgecore_as4630-54pe/sonic-broadcom-campus-10_02.pkg";
+        F.uri = "https://accesspoint-firmware.s3.ap-south-1.amazonaws.com/Accton_AS4630_54PE/sonic-broadcom-campus-10_02.pkg";
         F.revision = "x86_64-accton_as4630_54pe-r0";
         F.deviceType = "edgecore_as4630-54pe";
         F.downloadCount = 0;
