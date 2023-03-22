@@ -126,14 +126,14 @@ namespace OpenWifi {
         FMSObjects::Firmware    F;
         F.id = "asdff51d-e334-4247-a82a-c205aab4asdf";
         F.id_flag = true;
-        F.release = "SONiC-OS-4.1.0_daily_230122_1930_508-Campus";
+        F.release = "20230303-x86_64-accton_as4630_54pe-r0-v2.8.0-8ad58cb";
         F.size = 1212960750;
         F.created = Utils::Now();
         F.imageDate = 1674415850;
         F.image = "sonic-broadcom-campus-10_02.pkg";
         F.uri = "https://accesspoint-firmware.s3.ap-south-1.amazonaws.com/Accton_AS4630_54PE/sonic-broadcom-campus-10_02.pkg";
-        F.revision = "x86_64-accton_as4630_54pe-r0";
-        F.deviceType = "edgecore_as4630-54pe";
+        F.revision = "SONiC-OS-4.1.0_10713e4ad048_03MAR2023";
+        F.deviceType = "x86_64-accton_as4630_54pe-r0";
         F.downloadCount = 0;
         F.latest = "t";
         if(StorageService()->FirmwaresDB().AddFirmware(F)) {
