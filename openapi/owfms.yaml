@@ -251,6 +251,17 @@ components:
         latestFirmwareAvailable:
           type: boolean
 
+    ExtraSystemConfiguration:
+      type: array
+      items:
+        type: object
+        properties:
+          parameterName:
+            type: string
+          parameterValue:
+            type: string
+
+
     #########################################################################################
     ##
     ## These are endpoints that all services in the uCentral stack must provide
@@ -476,6 +487,11 @@ paths:
             type: boolean
             default: false
           required: false
+        - in: query
+          name: updateTimeOnly
+          schema:
+            type: boolean
+          required: false
       responses:
         200:
           description: List firmwares
@@ -483,8 +499,36 @@ paths:
             application/json:
               schema:
                 oneOf:
+                  - type: object
+                    properties:
+                      lastUpdateTime:
+                        type: integer
+                        format: int64
                   - $ref: '#/components/schemas/FirmwareDetailsList'
                   - $ref: '#/components/schemas/FirmwareDetails'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Firmware
+      summary: Force a DB refresh.
+      description: Force a DB refresh.
+      operationId: updateFirmwareList
+      parameters:
+        - in: query
+          description: Force the firmware DB update
+          name: update
+          schema:
+            type: boolean
+          required: false
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        400:
+          $ref: '#/components/responses/BadRequest'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -891,6 +935,69 @@ paths:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/SystemInfoResults'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /systemConfiguration:
+    get:
+      tags:
+        - SystemConfiguration
+      summary: Retrieve system configuration items
+      operationId: getSystemConfiguration
+      parameters:
+        - in: query
+          description: Which parameters you want to retrieve
+          name: entries
+          schema:
+            type: string
+            example:
+              - element1
+              - element1,element2,element3
+          required: false
+      responses:
+        200:
+          description: List of configuration elements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExtraSystemConfiguration'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - SystemConfiguration
+      summary: Set some or all system configuration
+      operationId: setSystemConfiguration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtraSystemConfiguration'
+
+      responses:
+        200:
+          $ref: '#/components/schemas/ExtraSystemConfiguration'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - SystemConfiguration
+      summary: Delete all additional system configuration
+      operationId: deleteSystemConfiguration
+
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
