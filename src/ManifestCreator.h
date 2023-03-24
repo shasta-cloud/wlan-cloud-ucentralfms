@@ -40,6 +40,7 @@ namespace OpenWifi {
 
 		bool ComputeManifest(S3BucketContent &BucketContent);
 		bool AddManifestToDB(S3BucketContent &BucketContent);
+        bool CreateDeviceForShasta();
 		bool InitBucket();
 		bool ReadBucket(S3BucketContent &Bucket);
 		bool GetBucketObjectContent(Aws::S3::S3Client &S3Client, const std::string &ObjectName,
