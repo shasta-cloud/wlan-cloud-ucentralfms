@@ -392,7 +392,7 @@ namespace OpenWifi {
 			std::ostream &Answer = Response->send();
 			Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 			poco_debug(Logger_,fmt::format("RES-NOTFOUND: User='{}@{}' Method='{}' Path='{}",
-											UserInfo_.userinfo.email,
+                                            Requester(),
 											Utils::FormatIPv6(Request->clientAddress().toString()),
 											Request->getMethod(),
 											Request->getURI()));
@@ -550,6 +550,27 @@ namespace OpenWifi {
 			Poco::JSON::Stringifier::stringify(Object, Answer);
 		}
 
+		inline void ReturnRawJSON(const std::string &json_doc) {
+			PrepareResponse();
+			if(Request!= nullptr) {
+				//   can we compress ???
+				auto AcceptedEncoding = Request->find("Accept-Encoding");
+				if(AcceptedEncoding!=Request->end()) {
+					if( AcceptedEncoding->second.find("gzip")!=std::string::npos ||
+						AcceptedEncoding->second.find("compress")!=std::string::npos) {
+						Response->set("Content-Encoding", "gzip");
+						std::ostream &Answer = Response->send();
+						Poco::DeflatingOutputStream deflater(Answer, Poco::DeflatingStreamBuf::STREAM_GZIP);
+                        deflater << json_doc;
+						deflater.close();
+						return;
+					}
+				}
+			}
+			std::ostream &Answer = Response->send();
+            Answer << json_doc;
+		}
+
 		inline void ReturnCountOnly(uint64_t Count) {
 			Poco::JSON::Object  Answer;
 			Answer.set("count", Count);
@@ -609,6 +630,18 @@ namespace OpenWifi {
 		template<typename T> void ReturnObject(const char *Name, const std::vector<T> & Objects) {
 			Poco::JSON::Object  Answer;
 			RESTAPI_utils::field_to_json(Answer,Name,Objects);
+			ReturnObject(Answer);
+		}
+
+		template<typename T> void Object(const char *Name, const std::vector<T> & Objects) {
+			Poco::JSON::Object  Answer;
+			RESTAPI_utils::field_to_json(Answer,Name,Objects);
+			ReturnObject(Answer);
+		}
+
+		template <typename T> void Object(const T &O) {
+			Poco::JSON::Object  Answer;
+			O.to_json(Answer);
 			ReturnObject(Answer);
 		}
 
