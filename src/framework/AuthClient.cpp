@@ -7,6 +7,7 @@
 #include "framework/AuthClient.h"
 #include "framework/MicroServiceNames.h"
 #include "framework/OpenAPIRequests.h"
+#include "framework/utils.h"
 #include "fmt/format.h"
 
 namespace OpenWifi {
@@ -18,10 +19,13 @@ namespace OpenWifi {
 		try {
 			Types::StringPairVec QueryData;
 			QueryData.push_back(std::make_pair("token",SessionToken));
+            std::string     AlternateURIForLogging = fmt::format("{}?token={}",  Sub ? "/api/v1/validateSubToken" : "/api/v1/validateToken", Utils::SanitizeToken(SessionToken));
 			OpenAPIRequestGet	Req(    uSERVICE_SECURITY,
 								  Sub ? "/api/v1/validateSubToken" : "/api/v1/validateToken",
 								  QueryData,
-								  10000);
+								  10000,
+								  AlternateURIForLogging
+                                  );
 			Poco::JSON::Object::Ptr Response;
 
 			auto StatusCode = Req.Do(Response);
@@ -46,7 +50,7 @@ namespace OpenWifi {
 				}
 			}
 		} catch (...) {
-			poco_error(Logger(),fmt::format("Failed to retrieve token={} for TID={}", SessionToken, TID));
+			poco_error(Logger(),fmt::format("Failed to retrieve token={} for TID={}", Utils::SanitizeToken(SessionToken), TID));
 		}
 		Expired = false;
 		return false;
@@ -59,6 +63,7 @@ namespace OpenWifi {
 		if(!User.isNull()) {
 			if(IsTokenExpired(User->webtoken)) {
 				Expired = true;
+				Cache_.remove(SessionToken);
 				return false;
 			}
 			Expired = false;
@@ -75,10 +80,12 @@ namespace OpenWifi {
         try {
             Types::StringPairVec QueryData;
             QueryData.push_back(std::make_pair("apikey",SessionToken));
+            std::string     AlternateURIForLogging = fmt::format("/api/v1/validateApiKey?apiKey={}", Utils::SanitizeToken(SessionToken));
             OpenAPIRequestGet	Req(    uSERVICE_SECURITY,
                                          "/api/v1/validateApiKey" ,
                                          QueryData,
-                                         10000);
+                                         10000,
+                                         AlternateURIForLogging);
             Poco::JSON::Object::Ptr Response;
 
             auto StatusCode = Req.Do(Response);
@@ -99,7 +106,7 @@ namespace OpenWifi {
                 }
             }
         } catch (...) {
-            poco_error(Logger(),fmt::format("Failed to retrieve api key={} for TID={}", SessionToken, TID));
+            poco_error(Logger(),fmt::format("Failed to retrieve api key={} for TID={}", Utils::SanitizeToken(SessionToken), TID));
         }
         Expired = false;
         return false;
@@ -109,10 +116,12 @@ namespace OpenWifi {
                                    std::uint64_t TID, bool &Expired, bool &Contacted) {
         auto User = ApiKeyCache_.get(SessionToken);
         if (!User.isNull()) {
-            if(User->ExpiresOn < Utils::Now())
-            Expired = false;
-            UInfo = User->UserInfo;
-            return true;
+            if(User->ExpiresOn < Utils::Now()) {
+                Expired = false;
+                UInfo = User->UserInfo;
+                return true;
+            }
+			ApiKeyCache_.remove(SessionToken);
         }
         return RetrieveApiKeyInformation(SessionToken, UInfo, TID, Expired, Contacted);
     }

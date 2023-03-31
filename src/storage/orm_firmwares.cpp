@@ -60,8 +60,11 @@ namespace OpenWifi {
     }
 
     bool FirmwaresDB::AddFirmware(FMSObjects::Firmware & F) {
-        // find the older software and change to latest = 0
+        // In CreateDeviceForShasta, when UUID is set then ignore CreateUUID, else create CreateUUID.
+        if (F.id_flag == false) {
         F.id = MicroServiceCreateUUID();
+        }
+        // find the older software and change to latest = 0
         if (LatestFirmwareCache()->AddToCache(F.deviceType, F.revision, F.id, F.imageDate)) {
             F.latest = true;
             std::vector<FMSObjects::Firmware> Fs;
